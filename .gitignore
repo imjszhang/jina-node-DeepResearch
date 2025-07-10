@@ -2,6 +2,8 @@
 messages.json
 urls.json
 
+work_dir/
+
 # Files
 tasks/
 context.json
