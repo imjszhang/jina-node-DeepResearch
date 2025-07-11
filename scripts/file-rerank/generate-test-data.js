@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 
 // 测试数据内容
 const testData = {
@@ -663,7 +664,7 @@ select:focus {
  * 创建测试数据目录和文件
  */
 function generateTestData() {
-  const testDataDir = path.join(__dirname, 'test-data');
+  const testDataDir = path.join(__dirname, '../../work_dir/test-data');
   
   // 创建目录
   if (!fs.existsSync(testDataDir)) {
@@ -720,7 +721,7 @@ function generateUsageExamples() {
   console.log('\n🔍 使用示例:');
   examples.forEach((example, index) => {
     console.log(`${index + 1}. ${example.description}`);
-    console.log(`   node file-rerank.js "${example.query}" ./test-data`);
+    console.log(`   node file-rerank.js "${example.query}" ./work_dir/test-data`);
     console.log('');
   });
 }
@@ -737,9 +738,11 @@ function main() {
     
     console.log('─'.repeat(60));
     console.log('📋 下一步操作:');
-    console.log('1. 设置环境变量: export JINA_API_KEY=your_api_key');
-    console.log('2. 安装依赖: npm install axios');
-    console.log('3. 运行测试: node file-rerank.js "JavaScript 函数" ./test-data');
+    console.log('1. 设置环境变量:');
+    console.log('   方法1: 创建 .env 文件，添加 JINA_API_KEY=your_api_key');
+    console.log('   方法2: export JINA_API_KEY=your_api_key');
+    console.log('2. 安装依赖: npm install axios dotenv');
+    console.log('3. 运行测试: node file-rerank.js "JavaScript 函数" ./work_dir/test-data');
     console.log('─'.repeat(60));
     
   } catch (error) {

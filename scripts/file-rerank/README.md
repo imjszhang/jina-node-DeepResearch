@@ -17,53 +17,57 @@
 
 ```bash
 # 安装依赖
-npm install axios
+npm install axios dotenv
 
 # 设置 Jina API Key
+# 方法1: 创建 .env 文件（推荐）
+echo "JINA_API_KEY=your_jina_api_key_here" > .env
+
+# 方法2: 使用环境变量
 export JINA_API_KEY=your_jina_api_key_here
 ```
 
 ### 2. 生成测试数据
 
 ```bash
-node scripts/generate-test-data.js
+node scripts/file-rerank/generate-test-data.js
 ```
 
-这会在 `scripts/test-data` 目录下生成各种类型的测试文件。
+这会在 `work_dir/test-data` 目录下生成各种类型的测试文件。
 
 ### 3. 运行文件排序
 
 ```bash
 # 基本用法
-node scripts/file-rerank.js "JavaScript 函数" ./scripts/test-data
+node scripts/file-rerank/file-rerank.js "JavaScript 函数" ./work_dir/test-data
 
 # 指定输出文件
-node scripts/file-rerank.js "机器学习算法" ./scripts/test-data ./my-results.json
+node scripts/file-rerank/file-rerank.js "机器学习算法" ./work_dir/test-data ./work_dir/my-results.json
 
 # 查看帮助
-node scripts/file-rerank.js
+node scripts/file-rerank/file-rerank.js
 ```
 
 ## 📊 使用示例
 
 ### 示例 1: 查找 JavaScript 相关文件
 ```bash
-node scripts/file-rerank.js "JavaScript 函数" ./scripts/test-data
+node scripts/file-rerank/file-rerank.js "JavaScript 函数" ./work_dir/test-data
 ```
 
 ### 示例 2: 查找机器学习内容
 ```bash
-node scripts/file-rerank.js "机器学习算法" ./scripts/test-data
+node scripts/file-rerank/file-rerank.js "机器学习算法" ./work_dir/test-data
 ```
 
 ### 示例 3: 查找数据分析文件
 ```bash
-node scripts/file-rerank.js "数据分析" ./scripts/test-data
+node scripts/file-rerank/file-rerank.js "数据分析" ./work_dir/test-data
 ```
 
 ### 示例 4: 查找异步编程内容
 ```bash
-node scripts/file-rerank.js "异步编程" ./scripts/test-data
+node scripts/file-rerank/file-rerank.js "异步编程" ./work_dir/test-data
 ```
 
 ## 📁 支持的文件类型
@@ -105,7 +109,7 @@ node scripts/file-rerank.js "异步编程" ./scripts/test-data
 ### 脚本参数
 - `query` - 查询语句（必需）
 - `folderPath` - 文件夹路径（必需）
-- `outputPath` - 输出文件路径（可选，默认为 `./rerank-results.json`）
+- `outputPath` - 输出文件路径（可选，默认为 `./work_dir/rerank-results.json`）
 
 ## 📈 性能优化
 
@@ -122,7 +126,9 @@ node scripts/file-rerank.js "异步编程" ./scripts/test-data
    ```
    错误: 请设置 JINA_API_KEY 环境变量
    ```
-   解决: 确保正确设置了环境变量
+   解决: 
+   - 方法1: 在项目根目录创建 `.env` 文件，添加 `JINA_API_KEY=your_api_key_here`
+   - 方法2: 确保正确设置了环境变量
 
 2. **文件夹不存在**
    ```

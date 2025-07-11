@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
+require('dotenv').config();
 
 // 配置
 const JINA_API_KEY = process.env.JINA_API_KEY;
@@ -41,30 +42,42 @@ async function rerankDocuments(query, documents, batchSize = BATCH_SIZE) {
         
         console.log(`⏳ 处理批次 ${batchIndex + 1}/${batches.length} (${batchDocuments.length} 个文档)`);
 
-        const request = {
-          model: 'jina-reranker-v2-base-multilingual',
-          query: query,
-          top_n: batchDocuments.length,
-          documents: batchDocuments.map(doc => doc.text)
-        };
+        try {
+          const request = {
+            model: 'jina-reranker-v2-base-multilingual',
+            query: query,
+            top_n: batchDocuments.length,
+            documents: batchDocuments.map(doc => doc.text)
+          };
 
-        const response = await axios.post(JINA_API_URL, request, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${JINA_API_KEY}`
-          },
-          timeout: 30000
-        });
+          const response = await axios.post(JINA_API_URL, request, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${JINA_API_KEY}`
+            },
+            timeout: 30000
+          });
 
-        console.log(`✅ 批次 ${batchIndex + 1} 完成，使用 ${response.data.usage.total_tokens} tokens`);
+          console.log(`✅ 批次 ${batchIndex + 1} 完成，使用 ${response.data.usage.total_tokens} tokens`);
 
-        // 添加原始文档信息到结果中
-        return response.data.results.map(result => ({
-          ...result,
-          originalIndex: startIdx + result.index,
-          source: batchDocuments[result.index].source,
-          originalText: batchDocuments[result.index].text
-        }));
+          // 添加原始文档信息到结果中
+          return response.data.results.map(result => ({
+            ...result,
+            originalIndex: startIdx + result.index,
+            source: batchDocuments[result.index].source,
+            originalText: batchDocuments[result.index].text
+          }));
+        } catch (error) {
+          console.error(`❌ 批次 ${batchIndex + 1} 失败:`, error.message);
+          // 返回原始文档，但设置默认相关性分数
+          return batchDocuments.map((doc, idx) => ({
+            index: idx,
+            relevance_score: 0.0,
+            originalIndex: startIdx + idx,
+            source: doc.source,
+            originalText: doc.text
+          }));
+        }
       })
     );
 
@@ -96,6 +109,7 @@ function readFilesFromFolder(folderPath, extensions = ['.txt', '.md', '.js', '.j
 
   const files = fs.readdirSync(folderPath);
   const documents = [];
+  let errorCount = 0;
 
   console.log(`📁 扫描文件夹: ${folderPath}`);
 
@@ -122,13 +136,17 @@ function readFilesFromFolder(folderPath, extensions = ['.txt', '.md', '.js', '.j
             console.log(`📄 读取文件: ${file} (${stat.size} bytes)`);
           }
         } catch (error) {
-          console.warn(`⚠️  无法读取文件 ${file}:`, error.message);
+          errorCount++;
+          console.log(`⚠️  无法读取文件 ${file}: ${error.message}`);
         }
       }
     }
   }
 
   console.log(`📚 总共读取 ${documents.length} 个文件`);
+  if (errorCount > 0) {
+    console.log(`⚠️  跳过 ${errorCount} 个无法读取的文件`);
+  }
   return documents;
 }
 
@@ -165,8 +183,34 @@ function generateReport(query, results, outputPath) {
     }))
   };
 
+  // 确保输出目录存在
+  const outputDir = path.dirname(outputPath);
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
   fs.writeFileSync(outputPath, JSON.stringify(report, null, 2), 'utf8');
   console.log(`📋 报告已保存到: ${outputPath}`);
+}
+
+/**
+ * 验证配置和环境
+ */
+function validateConfig() {
+  if (!JINA_API_KEY) {
+    console.error('❌ 错误: 未设置 JINA_API_KEY 环境变量');
+    console.log('请设置环境变量或在项目根目录创建 .env 文件:');
+    console.log('JINA_API_KEY=your_jina_api_key_here');
+    return false;
+  }
+
+  if (!JINA_API_URL) {
+    console.error('❌ 错误: JINA_API_URL 未配置');
+    return false;
+  }
+
+  console.log('✅ 配置验证通过');
+  return true;
 }
 
 /**
@@ -182,8 +226,8 @@ async function main() {
 用法: node file-rerank.js <查询语句> <文件夹路径> [输出文件路径]
 
 示例:
-  node file-rerank.js "JavaScript 函数" ./test-data
-  node file-rerank.js "机器学习算法" ./test-data ./results.json
+  node file-rerank.js "JavaScript 函数" ./work_dir/test-data
+  node file-rerank.js "机器学习算法" ./work_dir/test-data ./work_dir/results.json
 
 环境变量:
   JINA_API_KEY - Jina AI API 密钥 (必需)
@@ -193,13 +237,18 @@ async function main() {
 
   const query = args[0];
   const folderPath = args[1];
-  const outputPath = args[2] || './rerank-results.json';
+  const outputPath = args[2] || './work_dir/rerank-results.json';
 
   try {
     console.log(`🎯 查询语句: "${query}"`);
     console.log(`📁 目标文件夹: ${folderPath}`);
     console.log(`📄 输出文件: ${outputPath}`);
     console.log('─'.repeat(50));
+
+    // 验证配置
+    if (!validateConfig()) {
+      process.exit(1);
+    }
 
     // 读取文件
     const documents = readFilesFromFolder(folderPath);
