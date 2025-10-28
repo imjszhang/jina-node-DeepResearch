@@ -4,6 +4,26 @@
 
 ## ✨ 核心特性
 
+### 🆕 新功能（v2.0）
+
+#### 💰 Token 使用追踪器
+- **实时监控**：追踪每次 API 调用的 Token 消耗
+- **成本估算**：自动计算预估成本（基于 Jina AI 定价）
+- **详细报告**：显示各工具的使用统计和总计
+- **预算控制**：可设置 Token 预算限制，超限时发出警告
+
+#### 🔄 智能去重系统
+- **语义去重**：使用 Embedding 识别语义相似的重复结果
+- **可配置阈值**：默认相似度阈值 0.86，可自定义调整
+- **自动过滤**：自动移除重复内容，保留最相关的结果
+- **透明报告**：显示去重过程和移除的重复项数量
+
+#### 📎 增强引用系统
+- **精确定位**：显示结果在原文件中的确切行号
+- **位置信息**：标注匹配内容的字符位置范围
+- **上下文展示**：提供匹配片段的前后文本上下文
+- **完整追溯**：每个结果都可追溯到源文件的具体位置
+
 ### 🚀 使用 Jina Reranker v2
 
 - **多语言支持**：支持多种语言，包括中文、英文、日文、韩文等
@@ -88,6 +108,16 @@ node deep-search.js "API 文档" ./project --recursive
 # 自定义返回数量
 node deep-search.js "React Hooks" ./src --top 20
 
+# 🆕 使用新功能
+# 设置 Token 预算限制
+node deep-search.js "查询" ./src --token-budget 100000
+
+# 禁用智能去重
+node deep-search.js "查询" ./src --no-dedup
+
+# 禁用引用系统
+node deep-search.js "查询" ./src --no-references
+
 # 查看帮助
 node deep-search.js
 ```
@@ -146,6 +176,9 @@ node deep-search.js "数据库连接池" ./ --recursive --top 20 --rerank-top 10
 | `--rerank-top <数量>` | Rerank 阶段保留的文档数 | `50` |
 | `--top <数量>` | 最终返回的结果数 | `10` |
 | `--no-chunk` | 禁用文本分块（按整个文件搜索） | 启用分块 |
+| `--no-dedup` 🆕 | 禁用智能去重功能 | 启用去重 |
+| `--no-references` 🆕 | 禁用引用系统 | 启用引用 |
+| `--token-budget <数量>` 🆕 | 设置 Token 使用预算限制 | 无限制 |
 | `--recursive` | 递归搜索子目录 | 不递归 |
 | `--output <路径>` | 输出 JSON 报告的路径 | `./work_dir/deep-search-results.json` |
 
@@ -172,14 +205,20 @@ node deep-search.js "数据库连接池" ./ --recursive --top 20 --rerank-top 10
 【读取文件】→ 扫描目录，加载文件内容
     ↓
 【Rerank 粗筛】→ 快速筛选出前 N 个相关文件（默认 50）
-    ↓
+    ↓                 ↓ Token 追踪
 【智能分块】→ 将文件分割成小块（可选）
     ↓
-【Embedding 精匹配】→ 计算语义相似度
-    ↓
+【Embedding 精匹配】→ 计算语义相似度 + Late Chunking
+    ↓                 ↓ Token 追踪
 【综合评分】→ Rerank 分数 × 0.4 + Embedding 分数 × 0.6
     ↓
+【智能去重】🆕 → 移除语义相似的重复结果（阈值 0.86）
+    ↓
+【构建引用】🆕 → 添加行号、位置、上下文信息
+    ↓
 【返回结果】→ 按最终得分排序，返回 Top K
+    ↓
+【Token 报告】🆕 → 显示详细的 Token 使用和成本估算
 ```
 
 ### 评分公式
@@ -304,6 +343,105 @@ node deep-search.js "query" ./src --top 5 --rerank-top 20
 | **输出** | 相关性分数 | 1024 维向量 |
 | **多语言** | 26+ 语言 | 多语言支持 |
 
+## 🆕 新功能详解
+
+### 💰 Token 追踪器使用
+
+Token 追踪器会自动记录所有 API 调用，并在搜索结束时显示详细报告：
+
+```
+═══════════════════════════════════════════════════════════
+📊 Token 使用报告
+═══════════════════════════════════════════════════════════
+
+🔧 RERANK:
+   调用次数: 1
+   Prompt Tokens: 15,234
+   Completion Tokens: 0
+   总计: 15,234 tokens
+
+🔧 EMBEDDING:
+   调用次数: 3
+   Prompt Tokens: 45,678
+   Completion Tokens: 0
+   总计: 45,678 tokens
+
+───────────────────────────────────────────────────────────
+💰 总 Token 使用: 60,912
+💵 估算成本: $0.0013 USD
+⏱️  总耗时: 3.45s
+═══════════════════════════════════════════════════════════
+```
+
+**设置预算限制**：
+```bash
+# 限制最多使用 100,000 tokens
+node deep-search.js "查询" ./src --token-budget 100000
+```
+
+### 🔄 智能去重系统
+
+智能去重使用 Embedding 识别语义相似的结果：
+
+```
+🔄 [去重] 开始智能去重 (阈值: 0.86)...
+📊 [去重] 原始结果数: 15
+   ⚠️  发现重复: 结果 3 与结果 1 相似度 89.2%
+   ⚠️  发现重复: 结果 7 与结果 2 相似度 91.5%
+✅ [去重] 完成，保留 13 个唯一结果 (移除 2 个重复)
+```
+
+**工作原理**：
+1. 对所有结果生成 Embedding 向量
+2. 计算结果之间的余弦相似度
+3. 相似度超过阈值（默认 0.86）的视为重复
+4. 保留得分最高的结果，移除重复项
+
+**禁用去重**：
+```bash
+node deep-search.js "查询" ./src --no-dedup
+```
+
+### 📎 增强引用系统
+
+引用系统为每个结果添加精确的位置信息：
+
+**控制台显示**：
+```
+1. 📄 example.js
+   路径: src/utils/example.js
+   最终得分: 0.9234 (hybrid-chunk)
+   行号: 45                           🆕 精确行号
+   位置: 1250-1750                    🆕 字符位置
+   匹配片段: function handleAsync() { ... }
+```
+
+**JSON 报告中的引用信息**：
+```json
+{
+  "reference": {
+    "index": 1,
+    "filePath": "src/utils/example.js",
+    "fileName": "example.js",
+    "lineNumber": 45,
+    "excerpt": "function handleAsync() { ... }",
+    "position": {
+      "start": 1250,
+      "end": 1750
+    },
+    "context": {
+      "before": "... previous context ...",
+      "after": "... following context ..."
+    }
+  }
+}
+```
+
+**禁用引用系统**：
+```bash
+node deep-search.js "查询" ./src --no-references
+```
+
 ## 🐛 故障排除
 
 ### 问题 1: API Key 错误
@@ -336,6 +474,16 @@ NODE_OPTIONS="--max-old-space-size=4096" node deep-search.js "query" ./src
 - 不使用 `--recursive` 选项
 - 限制文件类型
 
+### 问题 5: Token 预算超限 🆕
+```
+⚠️  Token 预算超限: 105,234/100,000
+```
+**解决**:
+- 增加预算限制：`--token-budget 200000`
+- 减少搜索范围
+- 使用 `rerank-only` 模式（Token 消耗更少）
+- 禁用去重：`--no-dedup`
+
 ## 📚 相关资源
 
 - [Jina AI 官网](https://jina.ai/)
@@ -350,4 +498,5 @@ NODE_OPTIONS="--max-old-space-size=4096" node deep-search.js "query" ./src
 ## 📄 许可证
 
 Apache 2.0
+
 
