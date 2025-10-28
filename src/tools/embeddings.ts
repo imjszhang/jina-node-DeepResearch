@@ -26,7 +26,7 @@ export async function getEmbeddings(
   }
 
   // Handle empty input case
-  if (texts.length === 0) {
+  if (texts.length === 0 || texts.every(text => (typeof text === 'object' && !Object.values(text)?.[0]?.trim() || typeof text === 'string' && !text.trim()))) {
     return { embeddings: [], tokens: 0 };
   }
 
@@ -82,7 +82,14 @@ async function getBatchEmbeddingsWithRetry(
   const batchEmbeddings: number[][] = [];
   let batchTokens = 0;
   let retryCount = 0;
-  let textsToProcess = [...batchTexts]; // Copy the original texts
+  let textsToProcess = [...batchTexts].map(item => {
+    if (typeof item === 'string') {
+      return trimSymbols(item);
+    } else {
+      const key = Object.keys(item)[0];
+      return key === 'text' ? { text: trimSymbols(item[key]) } : item;
+    }
+  }); // Copy the original texts
   let indexMap = new Map<number, number>(); // Map to keep track of original indices
 
   // Initialize indexMap with original indices
@@ -114,8 +121,8 @@ async function getBatchEmbeddingsWithRetry(
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${JINA_API_KEY}`
-          }
-        }
+          },
+        },
       );
 
       if (!response.data.data) {
@@ -241,4 +248,9 @@ function truncateInputString(input: string | Record<string, string>): string {
   } else {
     return Object.values(input)[0].slice(0, 50);
   }
+}
+
+export function trimSymbols(str: string): string {
+  const regex = /[\p{S}\p{P}\p{Z}\p{C}\p{Emoji}]+/gu;
+  return str.replace(regex, ' ');
 }
