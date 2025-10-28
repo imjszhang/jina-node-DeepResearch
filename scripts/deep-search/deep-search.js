@@ -410,7 +410,7 @@ async function rerankDocuments(query, documents, topN = null, tracker = null) {
 
         try {
           const request = {
-            model: 'jina-reranker-v2-base-multilingual',
+            model: 'jina-reranker-m0',
             query: query,
             documents: batchDocuments.map(doc => doc.text)
           };
@@ -446,6 +446,9 @@ async function rerankDocuments(query, documents, topN = null, tracker = null) {
           }));
         } catch (error) {
           console.error(`❌ [Rerank] 批次 ${batchIndex + 1} 失败:`, error.message);
+          if (error.response && error.response.data) {
+            console.error('   详细错误:', JSON.stringify(error.response.data, null, 2));
+          }
           return batchDocuments.map((doc, idx) => ({
             ...doc,
             rerankScore: 0.0,
