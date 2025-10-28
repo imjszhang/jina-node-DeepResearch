@@ -157,10 +157,17 @@ async function rerankDocuments(query, documents, topN = null) {
 /**
  * 使用 Jina Embeddings 获取文本向量（第二阶段：精细匹配）
  * @param {Array} texts - 文本数组
- * @param {string} task - 任务类型
+ * @param {Object} options - 配置选项
  * @returns {Promise<Array>} 向量数组
  */
-async function getEmbeddings(texts, task = 'text-matching') {
+async function getEmbeddings(texts, options = {}) {
+  const {
+    task = 'text-matching',
+    dimensions = 1024,
+    late_chunking = false,
+    embedding_type = 'float'
+  } = options;
+
   if (!JINA_API_KEY) {
     throw new Error('请设置 JINA_API_KEY 环境变量');
   }
@@ -169,7 +176,7 @@ async function getEmbeddings(texts, task = 'text-matching') {
     return [];
   }
 
-  console.log(`🧮 [Embedding] 获取 ${texts.length} 个文本的向量...`);
+  console.log(`🧮 [Embedding] 获取 ${texts.length} 个文本的向量 (task: ${task}, late_chunking: ${late_chunking})...`);
 
   const batches = [];
   for (let i = 0; i < texts.length; i += EMBEDDING_BATCH_SIZE) {
@@ -189,9 +196,14 @@ async function getEmbeddings(texts, task = 'text-matching') {
         model: 'jina-embeddings-v3',
         input: batch,
         task: task,
-        dimensions: 1024,
-        embedding_type: 'float'
+        dimensions: dimensions,
+        embedding_type: embedding_type
       };
+
+      // 只在启用时添加 late_chunking 参数
+      if (late_chunking) {
+        request.late_chunking = true;
+      }
 
       const response = await axios.post(JINA_EMBEDDING_URL, request, {
         headers: {
@@ -249,7 +261,20 @@ async function deepSearch(query, documents, options = {}) {
   } else if (mode === 'embedding-only') {
     // 仅使用 Embedding
     const docTexts = documents.map(doc => doc.text);
-    const [queryEmbedding, ...docEmbeddings] = await getEmbeddings([query, ...docTexts], 'text-matching');
+    
+    // 使用 retrieval.query 任务类型获取查询向量
+    const [queryEmbedding] = await getEmbeddings([query], {
+      task: 'retrieval.query',
+      dimensions: 1024,
+      embedding_type: 'float'
+    });
+    
+    // 使用 retrieval.passage 任务类型获取文档向量
+    const docEmbeddings = await getEmbeddings(docTexts, {
+      task: 'retrieval.passage',
+      dimensions: 1024,
+      embedding_type: 'float'
+    });
     
     results = documents.map((doc, idx) => ({
       ...doc,
@@ -289,11 +314,20 @@ async function deepSearch(query, documents, options = {}) {
       
       console.log(`📊 生成了 ${allChunks.length} 个文本块`);
       
-      // 获取查询和所有块的 embedding
-      const [queryEmbedding, ...chunkEmbeddings] = await getEmbeddings(
-        [query, ...allChunks],
-        'text-matching'
-      );
+      // 获取查询的 embedding（使用 retrieval.query）
+      const [queryEmbedding] = await getEmbeddings([query], {
+        task: 'retrieval.query',
+        dimensions: 1024,
+        embedding_type: 'float'
+      });
+      
+      // 获取所有块的 embedding（使用 retrieval.passage + late_chunking）
+      const chunkEmbeddings = await getEmbeddings(allChunks, {
+        task: 'retrieval.passage',
+        dimensions: 1024,
+        late_chunking: true,
+        embedding_type: 'float'
+      });
       
       // 计算每个块的相似度
       const chunkResults = chunkToDocMap.map((mapping, idx) => ({
@@ -322,10 +356,20 @@ async function deepSearch(query, documents, options = {}) {
     } else {
       // 不分块，直接对整个文档计算 embedding
       const docTexts = rerankResults.map(doc => doc.text);
-      const [queryEmbedding, ...docEmbeddings] = await getEmbeddings(
-        [query, ...docTexts],
-        'text-matching'
-      );
+      
+      // 获取查询的 embedding（使用 retrieval.query）
+      const [queryEmbedding] = await getEmbeddings([query], {
+        task: 'retrieval.query',
+        dimensions: 1024,
+        embedding_type: 'float'
+      });
+      
+      // 获取文档的 embedding（使用 retrieval.passage）
+      const docEmbeddings = await getEmbeddings(docTexts, {
+        task: 'retrieval.passage',
+        dimensions: 1024,
+        embedding_type: 'float'
+      });
       
       results = rerankResults.map((doc, idx) => ({
         ...doc,
