@@ -1,0 +1,41 @@
+{
+  "name": "jina-deep-search",
+  "version": "1.0.0",
+  "description": "结合 Rerank 和 Embedding 的深度文件搜索工具",
+  "main": "deep-search.js",
+  "scripts": {
+    "search": "node deep-search.js",
+    "generate": "node generate-test-data.js",
+    "benchmark": "node benchmark.js",
+    "test-hybrid": "node deep-search.js \"JavaScript 函数\" ../../work_dir/test-data --mode hybrid",
+    "test-rerank": "node deep-search.js \"TypeScript 类型\" ../../work_dir/test-data --mode rerank-only",
+    "test-embedding": "node deep-search.js \"异步处理\" ../../work_dir/test-data --mode embedding-only",
+    "test-recursive": "node deep-search.js \"配置文件\" ../../ --recursive --top 5",
+    "bench-test": "node benchmark.js \"JavaScript 异步编程\" ../../work_dir/test-data",
+    "help": "node deep-search.js"
+  },
+  "keywords": [
+    "jina",
+    "rerank",
+    "embedding",
+    "semantic-search",
+    "deep-search",
+    "file-search",
+    "ai",
+    "nlp"
+  ],
+  "author": "Jina AI",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "dotenv": "^16.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jina-ai/node-DeepResearch.git"
+  }
+}
+

@@ -4,12 +4,13 @@
 
 ## 📋 功能特性
 
-- ✅ 使用 `jina-reranker-v2-base-multilingual` 多语言模型
+- ✅ 使用最新的 `jina-reranker-v3` 模型（Listwise 排序）
+- ✅ 支持 26+ 种语言的多语言查询
 - ✅ 支持多种文件格式 (JS, Python, Markdown, JSON, HTML, CSS)
 - ✅ 批量处理大量文件
 - ✅ 生成详细的排序报告
-- ✅ 支持中英文查询
 - ✅ 异步并行处理提高效率
+- ✅ 高性能：0.6B 参数，BEIR 61.94 nDCG@10
 
 ## 🚀 快速开始
 
@@ -154,9 +155,27 @@ node scripts/file-rerank/file-rerank.js "异步编程" ./work_dir/test-data
 2. **检查文件内容**: 确保文件编码为 UTF-8
 3. **测试小批量**: 先用少量文件测试
 
+## 🆕 Reranker v3 新特性
+
+### Listwise 排序
+v3 采用全新的 Listwise 排序机制，一次性处理所有文档：
+- 文档间可以相互交互，理解相对关系
+- "Last but not late" 机制：编码即交互
+- Top-10 结果极其稳定，不受输入顺序影响
+
+### 性能对比
+
+| 模型 | 参数量 | BEIR | MIRACL | MKQA |
+|------|--------|------|--------|------|
+| jina-reranker-v3 | 0.6B | **61.94** | **66.83** | 67.92 |
+| jina-reranker-v2 | 0.3B | 57.06 | 63.65 | 67.90 |
+
+v3 在保持轻量级的同时，性能全面提升！
+
 ## 🔗 相关资源
 
 - [Jina AI 官网](https://jina.ai/)
+- [Jina Rerank v3 论文](https://arxiv.org/abs/2509.25085)
 - [Jina Rerank API 文档](https://docs.jina.ai/concepts/reranking/)
 - [获取 API Key](https://jina.ai/reader)
 

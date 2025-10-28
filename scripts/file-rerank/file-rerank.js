@@ -44,10 +44,11 @@ async function rerankDocuments(query, documents, batchSize = BATCH_SIZE) {
 
         try {
           const request = {
-            model: 'jina-reranker-v2-base-multilingual',
+            model: 'jina-reranker-v3',
             query: query,
             top_n: batchDocuments.length,
-            documents: batchDocuments.map(doc => doc.text)
+            documents: batchDocuments.map(doc => doc.text),
+            return_documents: false
           };
 
           const response = await axios.post(JINA_API_URL, request, {
