@@ -5,8 +5,10 @@ require('dotenv').config();
 
 // 配置
 const JINA_API_KEY = process.env.JINA_API_KEY;
-const JINA_RERANK_URL = 'https://api.jina.ai/v1/rerank';
-const JINA_EMBEDDING_URL = 'https://api.jina.ai/v1/embeddings';
+const JINA_RERANK_URL = process.env.JINA_RERANK_BASE_URL || 'https://api.jina.ai/v1/rerank';
+const JINA_EMBEDDING_URL = process.env.JINA_EMBEDDING_BASE_URL || 'https://api.jina.ai/v1/embeddings';
+const JINA_RERANK_MODEL = process.env.JINA_RERANK_MODEL || 'jina-reranker-m0';
+const JINA_EMBEDDING_MODEL = process.env.JINA_EMBEDDING_MODEL || 'jina-embeddings-v3';
 const RERANK_BATCH_SIZE = 100;
 const EMBEDDING_BATCH_SIZE = 32;
 const CHUNK_SIZE = 500; // 每个文本块的字符数
@@ -410,7 +412,7 @@ async function rerankDocuments(query, documents, topN = null, tracker = null) {
 
         try {
           const request = {
-            model: 'jina-reranker-m0',
+            model: JINA_RERANK_MODEL,
             query: query,
             documents: batchDocuments.map(doc => doc.text)
           };
@@ -509,7 +511,7 @@ async function getEmbeddings(texts, options = {}, tracker = null) {
       console.log(`⏳ [Embedding] 处理批次 ${i + 1}/${batches.length}`);
       
       const request = {
-        model: 'jina-embeddings-v3',
+        model: JINA_EMBEDDING_MODEL,
         input: batch,
         task: task,
         dimensions: dimensions,

@@ -1,10 +1,9 @@
-import { JINA_API_KEY } from "../config";
+import { JINA_API_KEY, JINA_EMBEDDING_BASE_URL, JINA_EMBEDDING_MODEL } from "../config";
 import { JinaEmbeddingRequest, JinaEmbeddingResponse } from "../types";
 import axiosClient from "../utils/axios-client";
 import { logError, logDebug, logWarning } from '../logging';
 
 const BATCH_SIZE = 32;
-const API_URL = "https://api.jina.ai/v1/embeddings";
 const MAX_RETRIES = 3; // Maximum number of retries for missing embeddings
 
 // Modified to support different embedding tasks and dimensions
@@ -99,7 +98,7 @@ async function getBatchEmbeddingsWithRetry(
 
   while (textsToProcess.length > 0 && retryCount < MAX_RETRIES) {
     const request: JinaEmbeddingRequest = {
-      model: options.model || "jina-embeddings-v3",
+      model: options.model || JINA_EMBEDDING_MODEL,
       input: textsToProcess as any,
     };
 
@@ -115,7 +114,7 @@ async function getBatchEmbeddingsWithRetry(
 
     try {
       const response = await axiosClient.post<JinaEmbeddingResponse>(
-        API_URL,
+        JINA_EMBEDDING_BASE_URL,
         request,
         {
           headers: {

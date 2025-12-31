@@ -5,7 +5,8 @@ require('dotenv').config();
 
 // 配置
 const JINA_API_KEY = process.env.JINA_API_KEY;
-const JINA_API_URL = 'https://api.jina.ai/v1/rerank';
+const JINA_API_URL = process.env.JINA_RERANK_BASE_URL || 'https://api.jina.ai/v1/rerank';
+const JINA_RERANK_MODEL = process.env.JINA_RERANK_MODEL || 'jina-reranker-v3';
 const BATCH_SIZE = 100; // 每批处理的文件数量
 
 /**
@@ -44,7 +45,7 @@ async function rerankDocuments(query, documents, batchSize = BATCH_SIZE) {
 
         try {
           const request = {
-            model: 'jina-reranker-v3',
+            model: JINA_RERANK_MODEL,
             query: query,
             top_n: batchDocuments.length,
             documents: batchDocuments.map(doc => doc.text),

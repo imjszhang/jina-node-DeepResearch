@@ -159,6 +159,25 @@ export OPENAI_API_KEY=whatever  # random string would do, as we don't use it (un
 export DEFAULT_MODEL_NAME=qwen2.5-7b  # your local llm model name
 ```
 
+## Use Local Jina Rerank and Embedding Models
+
+If you have local Jina rerank or embedding models (e.g., running via Ollama, LMStudio, or other OpenAI-compatible API servers), you can configure them by setting the following environment variables:
+
+```bash
+# Local Rerank Model
+export JINA_RERANK_BASE_URL=http://127.0.0.1:8000/v1/rerank  # your local rerank endpoint
+export JINA_RERANK_MODEL=your-local-rerank-model-name  # your local rerank model name
+
+# Local Embedding Model
+export JINA_EMBEDDING_BASE_URL=http://127.0.0.1:8001/v1/embeddings  # your local embedding endpoint
+export JINA_EMBEDDING_MODEL=your-local-embedding-model-name  # your local embedding model name
+
+# Note: JINA_API_KEY is still required for authentication (can be any string if your local server doesn't require it)
+export JINA_API_KEY=whatever
+```
+
+If these environment variables are not set, the system will use the default Jina AI cloud API endpoints.
+
 
 ## OpenAI-Compatible Server API
 

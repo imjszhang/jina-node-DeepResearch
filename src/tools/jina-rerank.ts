@@ -1,9 +1,7 @@
 import { TokenTracker } from "../utils/token-tracker";
-import { JINA_API_KEY } from "../config";
+import { JINA_API_KEY, JINA_RERANK_BASE_URL, JINA_RERANK_MODEL } from "../config";
 import axiosClient from '../utils/axios-client';
 import { logInfo, logError, logDebug, logWarning } from '../logging';
-
-const JINA_API_URL = 'https://api.jina.ai/v1/rerank';
 
 // Types for Jina Rerank API
 interface JinaRerankRequest {
@@ -52,14 +50,14 @@ export async function rerankDocuments(
         const startIdx = batchIndex * batchSize;
 
         const request: JinaRerankRequest = {
-          model: 'jina-reranker-v2-base-multilingual',
+          model: JINA_RERANK_MODEL,
           query,
           top_n: batchDocuments.length,
           documents: batchDocuments
         };
 
         const response = await axiosClient.post<JinaRerankResponse>(
-          JINA_API_URL,
+          JINA_RERANK_BASE_URL,
           request,
           {
             headers: {
