@@ -1,7 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
-require('dotenv').config();
+// 从项目根目录加载 .env 文件
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
 // 配置
 const JINA_API_KEY = process.env.JINA_API_KEY;
@@ -595,16 +596,16 @@ async function deepSearch(query, documents, options = {}) {
     // 仅使用 Embedding
     const docTexts = documents.map(doc => doc.text);
     
-    // 使用 retrieval.query 任务类型获取查询向量
+    // 使用 retrieval 任务类型获取查询向量
     const [queryEmbedding] = await getEmbeddings([query], {
-      task: 'retrieval.query',
+      task: 'retrieval',
       dimensions: 1024,
       embedding_type: 'float'
     }, tracker);
     
-    // 使用 retrieval.passage 任务类型获取文档向量
+    // 使用 retrieval 任务类型获取文档向量
     const docEmbeddings = await getEmbeddings(docTexts, {
-      task: 'retrieval.passage',
+      task: 'retrieval',
       dimensions: 1024,
       embedding_type: 'float'
     }, tracker);
@@ -647,16 +648,16 @@ async function deepSearch(query, documents, options = {}) {
       
       console.log(`📊 生成了 ${allChunks.length} 个文本块`);
       
-      // 获取查询的 embedding（使用 retrieval.query）
+      // 获取查询的 embedding（使用 retrieval）
       const [queryEmbedding] = await getEmbeddings([query], {
-        task: 'retrieval.query',
+        task: 'retrieval',
         dimensions: 1024,
         embedding_type: 'float'
       }, tracker);
       
-      // 获取所有块的 embedding（使用 retrieval.passage + late_chunking）
+      // 获取所有块的 embedding（使用 retrieval + late_chunking）
       const chunkEmbeddings = await getEmbeddings(allChunks, {
-        task: 'retrieval.passage',
+        task: 'retrieval',
         dimensions: 1024,
         late_chunking: true,
         embedding_type: 'float'
@@ -690,16 +691,16 @@ async function deepSearch(query, documents, options = {}) {
       // 不分块，直接对整个文档计算 embedding
       const docTexts = rerankResults.map(doc => doc.text);
       
-      // 获取查询的 embedding（使用 retrieval.query）
+      // 获取查询的 embedding（使用 retrieval）
       const [queryEmbedding] = await getEmbeddings([query], {
-        task: 'retrieval.query',
+        task: 'retrieval',
         dimensions: 1024,
         embedding_type: 'float'
       }, tracker);
       
-      // 获取文档的 embedding（使用 retrieval.passage）
+      // 获取文档的 embedding（使用 retrieval）
       const docEmbeddings = await getEmbeddings(docTexts, {
-        task: 'retrieval.passage',
+        task: 'retrieval',
         dimensions: 1024,
         embedding_type: 'float'
       }, tracker);
