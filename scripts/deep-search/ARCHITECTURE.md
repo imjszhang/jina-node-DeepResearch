@@ -91,14 +91,14 @@ deep-search.js
 文档数组 [{text, source, path, ...}]
     ↓ deepSearch()
     ├─→ rerankDocuments()
-    │       ↓ API: jina-reranker-m0
+    │       ↓ API: jina-reranker-v3
     │   [{...doc, rerankScore}]
     │
     └─→ chunkText() (可选)
             ↓
         文本块数组
             ↓ getEmbeddings()
-            ↓ API: jina-embeddings-v3
+            ↓ API: jina-embeddings-v4
         向量数组
             ↓ cosineSimilarity()
         相似度分数
@@ -212,32 +212,33 @@ results = results.filter(r => {
 
 ## 模型选择
 
-### 为什么使用 jina-reranker-m0？
+### 为什么使用 jina-reranker-v3？
 
-本工具选择 `jina-reranker-m0` 作为重排序模型，基于以下考虑：
+本工具选择 `jina-reranker-v3` 作为重排序模型，基于以下考虑：
 
-1. **官方推荐**：[Jina AI 官网](https://jina.ai?sui=reranker&model=jina-reranker-m0)明确推荐的世界级重排序模型
+1. **最新技术**：采用 Listwise 排序机制，文档间可以相互交互，理解相对关系
 2. **最高精度**：专为最大化搜索相关性设计，提供业界领先的排序质量
-3. **速度优势**：实测比 ColBERT v2 快约 13%（13.26s vs 15.32s）
-4. **更好的相关性**：在实际测试中，能将最相关的结果排在更靠前的位置
+3. **稳定排序**：Top-10 结果极其稳定，不受输入顺序影响
+4. **性能提升**：相比 v2 版本，在 BEIR 和 MIRACL 数据集上性能全面提升
 5. **生产就绪**：经过充分验证，稳定可靠，适合企业级应用
 
 ### 可用模型对比
 
 | 模型 | 速度 | 精度 | Token 成本 | 适用场景 |
 |------|------|------|-----------|----------|
-| **jina-reranker-m0** ⭐ | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | 中等 | 高质量搜索（推荐） |
+| **jina-reranker-v3** ⭐ | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | 中等 | 高质量搜索（推荐） |
+| jina-reranker-m0 | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | 中等 | 高质量搜索 |
 | jina-colbert-v2 | ⚡⚡ | ⭐⭐⭐⭐ | 低 | 成本敏感场景 |
 | jina-reranker-v2-base-multilingual | ⚡⚡⚡ | ⭐⭐⭐ | 低 | 多语言基础搜索 |
 
 ## API 调用策略
 
-### Jina Rerank M0 API
+### Jina Rerank v3 API
 
 ```javascript
 POST https://api.jina.ai/v1/rerank
 {
-  "model": "jina-reranker-m0",
+  "model": "jina-reranker-v3",
   "query": "用户查询",
   "top_n": 100,
   "documents": ["文档1", "文档2", ...]
@@ -245,20 +246,20 @@ POST https://api.jina.ai/v1/rerank
 ```
 
 **特点**：
-- **世界级重排序**：Jina AI 旗舰模型，专为最大化搜索相关性设计
+- **最新重排序模型**：采用 Listwise 排序机制，文档间可以相互交互
 - **多语言支持**：26+ 种语言，包括中文、英文、日文、韩文等
 - **高精度排序**：提供业界领先的搜索相关性排序能力
+- **稳定结果**：Top-10 结果极其稳定，不受输入顺序影响
 - **快速响应**：批量大（100/批），速度快
 - **稳定可靠**：经过充分验证，适合生产环境
 - 直接返回相关性分数
-- 官方推荐模型
 
-### Jina Embeddings API
+### Jina Embeddings v4 API
 
 ```javascript
 POST https://api.jina.ai/v1/embeddings
 {
-  "model": "jina-embeddings-v3",
+  "model": "jina-embeddings-v4",
   "input": ["文本1", "文本2", ...],
   "task": "text-matching",
   "dimensions": 1024,
@@ -270,6 +271,7 @@ POST https://api.jina.ai/v1/embeddings
 - 返回 1024 维向量
 - 支持不同任务类型
 - 高精度语义表示
+- 最新版本的嵌入模型
 
 ## 扩展性设计
 
@@ -404,13 +406,13 @@ const results = await workers.process(documents);
 
 ## 总结
 
-Deep Search 通过巧妙结合 Jina Reranker M0 和 Embedding v3 模型，实现了：
+Deep Search 通过巧妙结合 Jina Reranker v3 和 Embedding v4 模型，实现了：
 
 ✅ **高效**：两阶段策略大幅提升速度  
-✅ **精准**：世界级重排序模型 + 深度语义理解，提供卓越的搜索质量  
+✅ **精准**：最新重排序模型 + 深度语义理解，提供卓越的搜索质量  
 ✅ **灵活**：三种模式适应不同场景  
 ✅ **可扩展**：模块化设计易于扩展  
-✅ **生产就绪**：使用官方推荐的旗舰模型，稳定可靠
+✅ **生产就绪**：使用最新的模型版本，稳定可靠
 
 这是一个在实际项目中经过验证的、生产级别的搜索解决方案。
 

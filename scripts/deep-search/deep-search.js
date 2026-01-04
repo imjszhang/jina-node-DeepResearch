@@ -8,8 +8,8 @@ require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 const JINA_API_KEY = process.env.JINA_API_KEY;
 const JINA_RERANK_URL = process.env.JINA_RERANK_BASE_URL || 'https://api.jina.ai/v1/rerank';
 const JINA_EMBEDDING_URL = process.env.JINA_EMBEDDING_BASE_URL || 'https://api.jina.ai/v1/embeddings';
-const JINA_RERANK_MODEL = process.env.JINA_RERANK_MODEL || 'jina-reranker-m0';
-const JINA_EMBEDDING_MODEL = process.env.JINA_EMBEDDING_MODEL || 'jina-embeddings-v3';
+const JINA_RERANK_MODEL = process.env.JINA_RERANK_MODEL || 'jina-reranker-v3';
+const JINA_EMBEDDING_MODEL = process.env.JINA_EMBEDDING_MODEL || 'jina-embeddings-v4';
 const RERANK_BATCH_SIZE = 100;
 const EMBEDDING_BATCH_SIZE = 32;
 const CHUNK_SIZE = 500; // 每个文本块的字符数

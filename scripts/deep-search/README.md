@@ -24,37 +24,37 @@
 - **上下文展示**：提供匹配片段的前后文本上下文
 - **完整追溯**：每个结果都可追溯到源文件的具体位置
 
-### 🚀 使用 Jina Reranker M0
+### 🚀 使用 Jina Reranker v3
 
-- **世界级重排序**：Jina AI 的旗舰 reranker 模型，专为最大化搜索相关性设计
+- **世界级重排序**：Jina AI 的最新 reranker 模型，采用 Listwise 排序机制
 - **多语言支持**：支持 26+ 种语言，包括中文、英文、日文、韩文等
 - **高精度**：提供业界领先的搜索相关性排序能力
 - **稳定可靠**：API 完全可用，响应快速
 - **生产就绪**：经过充分测试，可直接用于生产环境
 
-> 💡 **模型说明**：`jina-reranker-m0` 是 Jina AI 的世界级重排序模型，相比其他模型提供更高的搜索准确度，适合对搜索质量有高要求的场景。
+> 💡 **模型说明**：`jina-reranker-v3` 是 Jina AI 的最新重排序模型，采用 Listwise 排序机制，相比其他模型提供更高的搜索准确度，适合对搜索质量有高要求的场景。
 
 ### 🎯 三种搜索模式
 
 1. **Hybrid 混合模式（推荐）**
-   - 第一阶段：使用 Rerank M0 快速粗筛
-   - 第二阶段：使用 Embedding v3 精细匹配
+   - 第一阶段：使用 Rerank v3 快速粗筛
+   - 第二阶段：使用 Embedding v4 精细匹配
    - 结合两者优势，平衡速度与精度
 
 2. **Rerank-Only 快速模式**
-   - 仅使用 Rerank M0 模型
+   - 仅使用 Rerank v3 模型
    - 速度快，适合大量文件的快速筛选
    - 文档级别的相关性排序
 
 3. **Embedding-Only 精确模式**
-   - 仅使用 Embedding v3 模型
+   - 仅使用 Embedding v4 模型
    - 精度高，适合深度语义理解
    - 支持细粒度的相似度计算
 
 ### 🧩 智能分块 + Late Chunking
 
 - **智能分块**：自动将长文件分割成小块（默认 500 字符/块）
-- **Late Chunking**：使用 Jina v3 的 late chunking 技术，保留完整上下文
+- **Late Chunking**：使用 Jina v4 的 late chunking 技术，保留完整上下文
 - **精确定位**：找到最相关的具体段落，而不仅是整个文件
 - **位置信息**：返回匹配片段的精确位置
 
@@ -70,8 +70,8 @@
 ### 🎯 专业的 Task 类型
 
 根据 Jina DeepResearch 最佳实践，使用专门的 task 类型：
-- **retrieval.query**：优化查询向量表示
-- **retrieval.passage**：优化文档向量表示
+- **retrieval.query**：优化查询向量表示（Embedding v4）
+- **retrieval.passage**：优化文档向量表示（Embedding v4）
 - **late_chunking**：在混合模式的分块场景中自动启用
 
 ## 🚀 快速开始
@@ -331,34 +331,35 @@ node deep-search.js "query" ./src --top 5 --rerank-top 20
 
 ## 🎯 模型选择说明
 
-本工具使用 **`jina-reranker-m0`** 作为重排序模型，这是 [Jina AI 官方推荐](https://jina.ai?sui=reranker&model=jina-reranker-m0)的世界级重排序模型。
+本工具使用 **`jina-reranker-v3`** 作为重排序模型，这是 Jina AI 最新的重排序模型，采用 Listwise 排序机制。
 
-### 为什么选择 jina-reranker-m0？
+### 为什么选择 jina-reranker-v3？
 
-1. **最高精度**：专为最大化搜索相关性设计，提供业界领先的排序质量
-2. **速度优势**：相比 ColBERT 系列模型更快（13.26s vs 15.32s）
-3. **更好的相关性**：在实际测试中，能将最相关的结果（如 async-programming.js）排在更靠前的位置
-4. **官方支持**：Jina AI 官网明确列出的可用模型，稳定可靠
+1. **最新技术**：采用 Listwise 排序机制，文档间可以相互交互，理解相对关系
+2. **最高精度**：专为最大化搜索相关性设计，提供业界领先的排序质量
+3. **稳定排序**：Top-10 结果极其稳定，不受输入顺序影响
+4. **性能提升**：相比 v2 版本，在 BEIR 和 MIRACL 数据集上性能全面提升
 5. **生产就绪**：经过充分验证，适合企业级应用
 
 ### 可用的 Rerank 模型对比
 
 | 模型 | 速度 | 精度 | Token 成本 | 推荐场景 |
 |------|------|------|-----------|----------|
-| **jina-reranker-m0** ⭐ | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | 中等 | 高质量搜索（推荐） |
+| **jina-reranker-v3** ⭐ | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | 中等 | 高质量搜索（推荐） |
+| jina-reranker-m0 | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | 中等 | 高质量搜索 |
 | jina-colbert-v2 | ⚡⚡ | ⭐⭐⭐⭐ | 低 | 成本敏感场景 |
 | jina-reranker-v2-base-multilingual | ⚡⚡⚡ | ⭐⭐⭐ | 低 | 多语言基础搜索 |
 
-## 🔍 对比：Rerank M0 vs Embedding v3
+## 🔍 对比：Rerank v3 vs Embedding v4
 
-| 特性 | Rerank M0 | Embedding v3 |
+| 特性 | Rerank v3 | Embedding v4 |
 |------|-----------|--------------|
-| **模型** | jina-reranker-m0 | jina-embeddings-v3 |
-| **定位** | 世界级重排序模型 | 通用嵌入模型 |
+| **模型** | jina-reranker-v3 | jina-embeddings-v4 |
+| **定位** | 最新重排序模型（Listwise） | 最新嵌入模型 |
 | **速度** | ⚡⚡⚡ 快 | ⚡⚡ 中等 |
-| **精度** | ⭐⭐⭐⭐⭐ 卓越 | ⭐⭐⭐⭐ 优秀 |
+| **精度** | ⭐⭐⭐⭐⭐ 卓越 | ⭐⭐⭐⭐⭐ 卓越 |
 | **批处理** | 100/批 | 32/批 |
-| **排序方式** | 重排序（最大化相关性） | Pointwise（独立编码） |
+| **排序方式** | Listwise（文档间交互） | Pointwise（独立编码） |
 | **适用场景** | 粗筛、快速排序、高质量搜索 | 精细匹配、语义理解 |
 | **成本** | 中等 | 较低 |
 | **输出** | 相关性分数 | 1024 维向量 |
@@ -508,7 +509,7 @@ NODE_OPTIONS="--max-old-space-size=4096" node deep-search.js "query" ./src
 ## 📚 相关资源
 
 - [Jina AI 官网](https://jina.ai/)
-- [Jina Reranker M0 模型](https://jina.ai?sui=reranker&model=jina-reranker-m0)
+- [Jina Reranker v3 模型](https://jina.ai/)
 - [Jina Rerank API 文档](https://docs.jina.ai/concepts/reranking/)
 - [Jina Embeddings API 文档](https://docs.jina.ai/concepts/embeddings/)
 - [获取 API Key](https://jina.ai/reader)

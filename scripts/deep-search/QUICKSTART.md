@@ -2,7 +2,7 @@
 
 5 分钟上手 Jina 深度文件搜索工具！
 
-> 💡 **使用的模型**：本工具使用 [Jina Reranker M0](https://jina.ai?sui=reranker&model=jina-reranker-m0)（世界级重排序模型）+ Jina Embeddings v3，提供业界领先的搜索质量。
+> 💡 **使用的模型**：本工具使用 Jina Reranker v3（最新重排序模型，采用 Listwise 排序机制）+ Jina Embeddings v4，提供业界领先的搜索质量。
 
 ## 第一步：安装依赖
 
@@ -136,11 +136,11 @@ node deep-search.js "try catch error handling" ../../src --mode hybrid
 
 | 模式 | 速度 | 精度 | 使用模型 | 适用场景 |
 |------|------|------|----------|----------|
-| **rerank-only** | ⚡⚡⚡ 最快 | ⭐⭐⭐ 好 | Reranker M0 | 快速筛选大量文件 |
-| **embedding-only** | ⚡⚡ 中等 | ⭐⭐⭐⭐ 最准 | Embeddings v3 | 深度语义理解 |
-| **hybrid** | ⚡⚡ 中等 | ⭐⭐⭐⭐⭐ 卓越 | M0 + v3 | 平衡速度与精度（推荐） |
+| **rerank-only** | ⚡⚡⚡ 最快 | ⭐⭐⭐ 好 | Reranker v3 | 快速筛选大量文件 |
+| **embedding-only** | ⚡⚡ 中等 | ⭐⭐⭐⭐ 最准 | Embeddings v4 | 深度语义理解 |
+| **hybrid** | ⚡⚡ 中等 | ⭐⭐⭐⭐⭐ 卓越 | v3 + v4 | 平衡速度与精度（推荐） |
 
-> 💡 **推荐**：混合模式结合了 Reranker M0 的快速筛选和 Embeddings v3 的精准匹配，在大多数场景下表现最佳。
+> 💡 **推荐**：混合模式结合了 Reranker v3 的快速筛选和 Embeddings v4 的精准匹配，在大多数场景下表现最佳。
 
 ## 💡 使用技巧
 
@@ -210,7 +210,7 @@ NODE_OPTIONS="--max-old-space-size=4096" node deep-search.js "query" ./src
 - 查看 API 参考：了解所有可用选项
 - 运行性能测试：对比不同模式的效果
 - 集成到你的工作流：创建自定义脚本
-- 了解模型选择：查看为什么使用 Jina Reranker M0
+- 了解模型选择：查看为什么使用 Jina Reranker v3
 
 ## 🎉 完成！
 
