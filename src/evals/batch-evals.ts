@@ -108,7 +108,7 @@ Minor wording differences are acceptable as long as the core information of the 
 
   try {
     const result = await generateObject({
-      model: createGoogleGenerativeAI({ apiKey: GEMINI_API_KEY })('gemini-2.5-flash'),  // fix to gemini-2.0-flash for evaluation
+      model: createGoogleGenerativeAI({ apiKey: GEMINI_API_KEY })('gemini-3.1-flash-lite-preview'),  // migrated from gemini-2.5-flash on 2026-05-01
       schema,
       prompt,
       maxTokens: 1000,
